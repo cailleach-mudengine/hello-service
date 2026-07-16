@@ -1,0 +1,49 @@
+name: 'OnCreateTag'
+
+on:  
+  push:
+    tags:
+      - v**
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  node-ecs-publish-dev:
+    uses: CailleachOrg/tfc-shared-actions/.github/workflows/node-ecs-publish.yml@main
+    with:
+      environment_name: 'dev'
+      aws-region: ${{ vars.DEV_AWS_REGION }}
+      aws-role: ${{ vars.DEV_AWS_ROLE }}
+      revision: ${{ github.ref_name }}
+    secrets:
+      tfc-token: ${{ secrets.TFC_TOKEN }}
+
+  node-ecs-promote-hml:
+    needs: [ node-ecs-publish-dev ]
+    uses: CailleachOrg/tfc-shared-actions/.github/workflows/node-ecs-promote.yml@main
+    with:
+      from-environment_name: 'dev'
+      from-aws-region: ${{ vars.DEV_AWS_REGION }}
+      from-aws-role: ${{ vars.DEV_AWS_ROLE }}
+      to-environment_name: 'hml'
+      to-aws-region: ${{ vars.HML_AWS_REGION }}
+      to-aws-role: ${{ vars.HML_AWS_ROLE }}
+      revision: ${{ github.ref_name }}
+    secrets:
+      tfc-token: ${{ secrets.TFC_TOKEN }}
+
+  node-ecs-promote-prd:
+    needs: [ node-ecs-promote-hml ]
+    uses: CailleachOrg/tfc-shared-actions/.github/workflows/node-ecs-promote.yml@main
+    with:
+      from-environment_name: 'dev'
+      from-aws-region: ${{ vars.DEV_AWS_REGION }}
+      from-aws-role: ${{ vars.DEV_AWS_ROLE }}
+      to-environment_name: 'prd'
+      to-aws-region: ${{ vars.PRD_AWS_REGION }}
+      to-aws-role: ${{ vars.PRD_AWS_ROLE }}
+      revision: ${{ github.ref_name }}
+    secrets:
+      tfc-token: ${{ secrets.TFC_TOKEN }}

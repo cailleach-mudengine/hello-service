@@ -1,0 +1,38 @@
+terraform {
+
+  required_version = "~>1.15"
+
+  required_providers {
+    aws = {
+      source   = "hashicorp/aws"
+      version = ">= 6.13"
+    }
+  }
+  
+  backend "s3" {
+    bucket         = "{{ state_bucket }}"
+    key            = "{{ state_key }}"
+    region         = "{{ region }}"
+	  use_lockfile   = true
+	  assume_role = {
+      role_arn = "{{ admin_role }}"
+    }
+  }
+}
+
+provider "aws" {
+  region = "{{ region }}"
+  
+  assume_role {
+    role_arn = "{{ main_role }}"
+  }
+}
+
+provider "aws" {
+  alias = "admin"
+  region = "{{ region }}"
+ 
+  assume_role {
+    role_arn = "{{ admin_role }}"
+  } 
+}

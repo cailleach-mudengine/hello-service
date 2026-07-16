@@ -1,0 +1,28 @@
+name: 'OnPushMain'
+
+on:  
+  push:
+    branches:
+      - 'main'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  node-ecs-dev-publish:
+    uses: cailleach-devops/aws-shared-actions/.github/workflows/node-ecs-deploy.yml@main
+    with:
+      environment: 'dev'
+      initiative: ${{ vars.INITIATIVE }}
+      aws-bucket-prefix: ${{ vars.BUCKET_PREFIX }}
+      aws-region: ${{ vars.DEV_AWS_REGION }}
+      git-organization: ${{ github.repository_owner }}
+      service_name: ${{ github.event.repository.name }}
+      revision: ${{ github.ref_name }}
+    secrets:
+      aws-admin-role: ${{ secrets.DEV_AWS_ADMIN_ROLE }}
+      aws-github-role: ${{ secrets.DEV_AWS_GITHUB_ROLE }}
+      aws-main-role: ${{ secrets.DEV_AWS_MASTER_ROLE }}
+      shared-client-id: ${{ secrets.SHARED_CLIENT_ID }}
+      shared-secret: ${{ secrets.SHARED_SECRET }}
