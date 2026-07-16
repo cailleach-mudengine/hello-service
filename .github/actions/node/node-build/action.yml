@@ -1,0 +1,36 @@
+name: 'Node Build and Test'
+inputs:
+  node-version:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: SetUp Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    - name: Test
+      shell: bash
+      run: npm run test
+
+    - name: Version Markers
+      shell: bash
+      run: |
+
+        echo "<h1>${{github.ref_type}}: ${{github.ref_name}}</h1>
+          <h2>Date: ${{ github.event.repository.updated_at}}</h2>
+          <h2>Last Commit: ${{github.sha}}</h2>
+          <br>
+            <p>Changes:</p>
+          <hr>
+          " > ./src/changelog.html
+
+        echo -n "${{github.sha}}" > ./src/version.txt
+
+        git log --format="%ad - [%h]: %s" --date=format:"%d/%m/%Y %H:%M:%S" --max-count=5 --abbrev-commit >> ./src/changelog.html

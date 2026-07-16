@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   node-ecs-dev-publish:
-    uses: cailleach-devops/aws-shared-actions/.github/workflows/node-ecs-deploy.yml@main
+    uses: cailleach-mudengine/hello-service/.github/workflows/node-ecs-deploy.yml@feature/refactor
     with:
       environment: 'dev'
       initiative: ${{ vars.INITIATIVE }}

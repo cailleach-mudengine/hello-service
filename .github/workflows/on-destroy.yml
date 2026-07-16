@@ -1,19 +1,15 @@
-name: 'OnPullRequest'
+name: 'OnDestroy'
 
 on:  
-  pull_request:
-    types: [opened, reopened]
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
-  pull-requests: write
   id-token: write
 
 jobs:
-  node-ecs-pull-request:
-    uses: cailleach-mudengine/hello-service/.github/workflows/node-ecs-pull-request.yml@feature/refactor
+  starter-ecs-dev-publish:
+    uses: cailleach-mudengine/hello-service/.github/workflows/node-ecs-destroy.yml@feature/refactor
     with:
       environment: 'dev'
       initiative: ${{ vars.INITIATIVE }}
