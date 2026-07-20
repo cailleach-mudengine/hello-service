@@ -9,34 +9,34 @@ on:
       environment:
         type: string
         required: true
-      service-name:
+      service_name:
         type: string
         required: false
       revision:
         type: string
         required: false
-      git-organization:
+      git_organization:
         type: string
         required: true
-      aws-bucket-prefix:
+      aws_bucket_prefix:
         type: string
         required: true    
-      aws-region:
+      aws_region:
         type: string
         required: true
         description: Region where to run Terraform script
     secrets:
-      shared-client-id:
+      shared_client_id:
         required: true
-      shared-secret:
+      shared_secret:
         required: true
-      aws-github-role:
-        required: true
-        description: Role to be used to run Terraform script
-      aws-main-role:
+      aws_github_role:
         required: true
         description: Role to be used to run Terraform script
-      aws-admin-role:
+      aws_main_role:
+        required: true
+        description: Role to be used to run Terraform script
+      aws_admin_role:
         required: true
         description: Additional role to access AWS Core Account  
 
@@ -57,16 +57,16 @@ jobs:
     - name: "Terraform Destroy"
       uses: cailleach-devops/aws-shared-actions/.github/actions/tf/tf-destroy@main
       with:
-        aws-bucket-prefix: ${{ inputs.aws-bucket-prefix }}
-        aws-admin-role: ${{ secrets.aws-admin-role }}
-        aws-github-role: ${{ secrets.aws-github-role }}
-        aws-main-role: ${{ secrets.aws-main-role }}
-        aws-region: ${{ inputs.aws-region }}
-        shared-client-id: ${{ secrets.shared-client-id }}
-        shared-secret: ${{ secrets.shared-secret }}
-        is-infra-script: false
+        aws_bucket_prefix: ${{ inputs.aws_bucket_prefix }}
+        aws_admin_role: ${{ secrets.aws_admin_role }}
+        aws_github_role: ${{ secrets.aws_github_role }}
+        aws_main_role: ${{ secrets.aws_main_role }}
+        aws_region: ${{ inputs.aws_region }}
+        shared_client_id: ${{ secrets.shared_client_id }}
+        shared_secret: ${{ secrets.shared_secret }}
+        is_infra_script: false
         initiative: ${{ inputs.initiative }}
         environment: ${{ inputs.environment }}
-        git-organization: ${{ inputs.git-organization }}
-        service-name: ${{ inputs.service-name }}
+        git_organization: ${{ inputs.git_organization }}
+        service_name: ${{ inputs.service_name }}
         revision: ${{ inputs.revision }}
