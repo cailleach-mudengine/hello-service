@@ -1,0 +1,124 @@
+name: 'AwsDeploy'
+
+on:  
+  workflow_call:
+    inputs:
+      initiative:
+        type: string
+        required: true
+      environment:
+        type: string
+        required: true
+      service_name:
+        type: string
+        required: false
+      revision:
+        type: string
+        required: false
+      git_organization:
+        type: string
+        required: true
+      aws_bucket_prefix:
+        type: string
+        required: true    
+      aws_region:
+        type: string
+        required: true
+        description: Region where to run Terraform script
+    secrets:
+      shared_client_id:
+        required: true
+      shared_secret:
+        required: true
+      aws_github_role:
+        required: true
+        description: Role to be used to run Terraform script
+      aws_main_role:
+        required: true
+        description: Role to be used to run Terraform script
+      aws_admin_role:
+        required: true
+        description: Additional role to access AWS Core Account  
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  
+  terraform-apply:
+    runs-on: ubuntu-latest
+
+    steps:
+    - id: checkout
+      name: checkout
+      uses: actions/checkout@v7
+      
+    - name: "Terraform Deploy"
+      uses: cailleach-devops/aws-shared-actions/.github/actions/tf/tf-deploy@main
+      with:
+        aws_bucket_prefix: ${{ inputs.aws_bucket_prefix }}
+        aws_admin_role: ${{ secrets.aws_admin_role }}
+        aws_github_role: ${{ secrets.aws_github_role }}
+        aws_main_role: ${{ secrets.aws_main_role }}
+        aws_region: ${{ inputs.aws_region }}
+        shared_client_id: ${{ secrets.shared_client_id }}
+        shared_secret: ${{ secrets.shared_secret }}
+        is_infra_script: false
+        initiative: ${{ inputs.initiative }}
+        environment: ${{ inputs.environment }}
+        git_organization: ${{ inputs.git_organization }}
+        service_name: ${{ inputs.service_name }}
+        revision: ${{ inputs.revision }}
+
+  app-build:
+    runs-on: ubuntu-latest
+    steps:
+    - id: checkout
+      name: checkout
+      uses: actions/checkout@v7
+
+    - name: buildAndUnityTest
+      uses: cailleach-mudengine/hello-service/.github/actions/node/node-build@feature/refactor
+      with:
+        node_version: '24'
+
+  database-apply:
+    runs-on: ubuntu-latest
+    steps:
+    - id: checkout
+      name: checkout
+      uses: actions/checkout@v7
+      
+    - name: "Someday"
+      shell: bash
+      run: echo "TO BE IMPLEMENTED..."
+
+  app-publish:
+    runs-on: ubuntu-latest
+    needs: [ database-apply, terraform-apply, app-build]
+
+    steps:
+    - id: checkout
+      name: checkout
+      uses: actions/checkout@v7
+
+    - name: Docker Deploy
+      uses: cailleach-mudengine/hello-service/.github/actions/node/node-docker-deploy@feature/refactor
+      with:
+        node_version: '24'
+        initiative: ${{ inputs.initiative }}
+        service_name: ${{github.event.repository.name}}
+        environment: ${{ inputs.environment}}
+        revision: ${{ inputs.revision }}
+        aws_region: ${{ inputs.aws-region }}
+        aws_role: ${{ inputs.aws-role }}
+
+
+  app-rollout:
+    runs-on: ubuntu-latest
+    needs: [ app-publish]
+
+    steps:
+    - name: Wait for Finish
+      run: echo "Finished..."
