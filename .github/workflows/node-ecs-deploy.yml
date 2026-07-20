@@ -46,7 +46,7 @@ permissions:
 
 jobs:
   
-  terraform-destroy:
+  terraform-apply:
     runs-on: ubuntu-latest
 
     steps:
@@ -106,7 +106,7 @@ jobs:
     - name: Docker Deploy
       uses: cailleach-mudengine/hello-service/.github/actions/node/node-docker-deploy@feature/refactor
       with:
-        node-version: '24'
+        node_version: '24'
         initiative: ${{ inputs.initiative }}
         service_name: ${{github.event.repository.name}}
         environment: ${{ inputs.environment}}
