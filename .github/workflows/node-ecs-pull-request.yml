@@ -61,7 +61,7 @@ jobs:
         aws_region: ${{ inputs.aws_region }}
         shared_client_id: ${{ secrets.shared_client_id }}
         shared_secret: ${{ secrets.shared_secret }}
-        is-infra-script: false
+        is_infra_script: false
         initiative: ${{ inputs.initiative }}
         environment: ${{ inputs.environment }}
         git_organization: ${{ inputs.git_organization }}
