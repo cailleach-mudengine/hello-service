@@ -1,0 +1,56 @@
+name: 'Node Build, Package, Publish'
+inputs:
+  node_version:
+    required: true
+  initiative:
+    type: string
+    required: true
+  environment:
+    required: true
+  service_name:
+    type: string      
+    required: true
+  revision:
+    required: true
+  aws_region:
+    required: true    
+  aws_admin_account:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+
+    - id: checkout
+      name: checkout
+      uses: actions/checkout@v4
+      
+    - id: aws-resources
+      name: compose names
+      shell: bash
+      run: |
+         echo "aws-ecr-name=${{ inputs.initiative }}-${{ inputs.aws_region }}-${{ inputs.service-name }}-${{ inputs.environment }}-repo" >> "$GITHUB_ENV"
+         echo "aws-upload-role=arn:aws:iam::${{ inputs.aws_admin_account }}:role/${{ inputs.initiative }}-${{ inputs.service_name }}-${{ inputs.environment }}-ecr-role" >> "$GITHUB_ENV"
+
+    - name: configure aws credentials
+      uses: aws-actions/configure-aws-credentials@v6.2.2
+      with:
+        role-to-assume: ${{ env.aws_upload_role }}
+        aws-region: ${{ inputs.aws_region }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: buildAndUnitTest
+      uses: cailleach-mudengine/hello-service/.github/actions/node/node-build@feature/refactor
+      with:
+        node_version: ${{ inputs.node_version }}
+
+    - name: Docker build
+      shell: bash
+      run: docker build -t ${{ steps.login-ecr.outputs.registry }}/${{env.aws-ecr-name}}:${{ inputs.revision }} .     
+
+    - name: Docker push
+      shell: bash
+      run: docker push ${{ steps.login-ecr.outputs.registry }}/${{env.aws-ecr-name}}:${{ inputs.revision }}
