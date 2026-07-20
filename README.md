@@ -24,20 +24,6 @@ Target Audiente: develop team.
 Beyond basic modules, dev team can select additional modules to build their solutions.
 
 
-## Create Repository Pipeline
-================================================
-
-When the repository is created a pipeline is triggered.
-This pipeline perform two things:
-
-- a workspace is created in Terraform Cloud for each environment for this particular service;
-- a upload role is created in AWS and assigned to the service;
-
-The workspace's name will have the repository name plus the environment as suffix.
-
-The upload role can perform ECR upload operations only from the selected repository.
-
-
 ## Pull Request Pipeline
 ================================================
 
