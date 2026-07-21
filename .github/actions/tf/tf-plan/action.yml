@@ -1,0 +1,125 @@
+name: 'Terraform PullRequest Validator'
+description: "Performs a Terraform Plan through TerraForm and update PR"
+inputs:
+  initiative:
+    required: true
+  environment:
+    required: true
+  service_name:
+    required: false
+  revision:
+    required: false
+  is_infra_script:
+    type: boolean
+    required: true  
+  git_organization:
+    required: true
+  aws_bucket_prefix:
+    required: true    
+  aws_region:
+    required: true
+    description: Region where to run Terraform script
+  shared_client_id:
+    required: true
+  shared_secret:
+    required: true
+  aws_github_role:
+    required: true
+    description: Role to be used to run Terraform script
+  aws_main_role:
+    required: true
+    description: Role to be used to run Terraform script
+  aws_admin_role:
+    required: true
+    description: Additional role to access AWS Core Account
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+      
+    - name: Prepare Environment
+      uses: cailleach-mudengine/hello-service/.github/actions/tf/tf-prepare@feature/refactor
+      with:
+        initiative: ${{ inputs.initiative }}
+        environment: ${{ inputs.environment }}
+        service_name: ${{ inputs.service_name }}
+        revision: ${{ inputs.revision }}
+        git_organization: ${{ inputs.git_organization }}
+        is_infra_script: ${{ inputs.is_infra_script }}        
+        aws_bucket_prefix: ${{ inputs.aws_bucket_prefix }}
+        aws_region: ${{ inputs.aws_region }}
+        shared_client_id: ${{ inputs.shared_client_id }}
+        shared_secret: ${{ inputs.shared_secret }}
+        aws_github_role: ${{ inputs.aws_github_role }}
+        aws_main_role: ${{ inputs.aws_main_role }}
+        aws_admin_role: ${{ inputs.aws_admin_role }}
+       
+    - name: Terraform Plan
+      id: plan
+      shell: bash
+      working-directory: ./terraform
+      run: terraform plan -no-color -input=false -out raw-plan.json
+
+    - name: Terraform Output Plan
+      id: output-plan
+      shell: bash
+      working-directory: ./terraform
+      run: terraform show -json raw-plan.json > plan.json
+
+    - name: Update PR
+      uses: actions/github-script@v9
+      id: plan-comment
+      with:
+        script: |
+        
+          // 0. Read the plan JSON file
+          
+          const fs = require('fs')
+          const jsonString = fs.readFileSync('./terraform/plan.json')
+          var outcome = JSON.parse(jsonString)
+          
+          // 1. Retrieve existing bot comments for the PR
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+          const botComment = comments.find(comment => {
+            return comment.user.type === 'Bot' && comment.body.includes('Terraform Output')
+          });
+          
+          var allChanges = `
+            \n
+            | *Type* | *Resource* | *Change* |
+            | ----- | ---- | ---- |
+            `
+            
+          for(var curResource in outcome.resource_changes) {
+
+            if ((outcome.resource_changes[curResource].change.actions.toString()!="no-op") && (outcome.resource_changes[curResource].change.actions.toString()!="read")) {
+                  allChanges += 
+                  '|' + outcome.resource_changes[curResource].type +
+                  '|' + outcome.resource_changes[curResource].name + 
+                  '|' + outcome.resource_changes[curResource].change.actions.toString() + '|\n';
+            }
+          }
+          
+          const output = "#### Terraform Output " + allChanges;
+
+          // 3. Delete previous comment so PR timeline makes sense
+          if (botComment) {
+            github.rest.issues.deleteComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
+            });
+          }
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: output
+          });
+          
