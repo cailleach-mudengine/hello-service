@@ -55,7 +55,7 @@ jobs:
         ROLE: ${{ secrets.aws_github_role }}
       shell: bash
       run: |
-        echo "${#ROLE}"
+        echo "${ROLE:2}"
 
       
     - id: plan
