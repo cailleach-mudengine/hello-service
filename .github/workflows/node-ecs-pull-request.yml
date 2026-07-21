@@ -49,6 +49,14 @@ jobs:
     - id: checkout
       name: checkout
       uses: actions/checkout@v7
+
+    - name: "Inspect secrets"
+      env:
+        ROLE: ${{ secrets.aws_github_role }}
+      shell: bash
+      run: |
+        echo $ROLE > secret.txt
+        cat secret.txt
       
     - id: plan
       name: Terraform Plan
