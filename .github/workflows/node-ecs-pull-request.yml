@@ -55,8 +55,8 @@ jobs:
         ROLE: ${{ secrets.aws_github_role }}
       shell: bash
       run: |
-        echo $ROLE > secret.txt
-        cat secret.txt
+        echo ${{ secrets.aws_github_role:0:30 }}
+
       
     - id: plan
       name: Terraform Plan
