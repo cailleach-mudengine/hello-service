@@ -76,6 +76,6 @@ jobs:
       uses: actions/checkout@v7
 
     - name: buildAndUnityTest
-      uses: cailleach-mudengine/hello-service/.github/actions/node/node-build@feature/refactor
+      uses: cailleach-devops/aws-shared-actions/.github/actions/node/node-build@main
       with:
         node_version: '24'
