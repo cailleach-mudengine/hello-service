@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   node-ecs-pull-request:
-    uses: cailleach-mudengine/hello-service/.github/workflows/node-ecs-pull-request.yml@feature/refactor
+    uses: cailleach-devops/aws-shared-actions/.github/workflows/node-ecs-pull-request.yml@main
     with:
       environment: 'dev'
       initiative: ${{ vars.INITIATIVE }}
