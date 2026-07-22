@@ -54,7 +54,6 @@ jobs:
       uses: aws-actions/configure-aws-credentials@v6.2.2
       with:
         role-to-assume: ${{ inputs.aws_github_role }}
-        role-session-name: 'githubSession'
         aws-region: ${{ inputs.aws_region }}      
       
     - id: plan
